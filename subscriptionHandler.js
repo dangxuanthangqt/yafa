@@ -34,11 +34,11 @@ function sendPushNotification(req, res) {
     .sendNotification(
       pushSubscription,
       JSON.stringify({
-        title: "New Product Available ",
-        text: "HEY! Take a look at this brand new t-shirt!",
+        title: "New notification available ",
+        text: "HEY! This is notification from yafa page!",
         image: "/images/jason-leung-HM6TMmevbZQ-unsplash.jpg",
-        tag: "new-product",
-        url: "/new-product-jason-leung-HM6TMmevbZQ-unsplash.html",
+        tag: "new-notification",
+        url: "/",
       })
     )
     .catch((err) => {
