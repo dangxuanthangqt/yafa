@@ -15,7 +15,7 @@ exports.connection = (io) => {
 
     socket.on("message", (message) => {
       console.log(`message from ${socket.id} : ${message}`);
-      socket.emit("vai lin", "vai lin");
+      socket.broadcast.emit("broadcast", "vai thiet");
     });
 
     socket.on("disconnect", () => {

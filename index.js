@@ -21,7 +21,30 @@ app.use(
 );
 
 const io = socketUtils.sio(server);
-socketUtils.connection(io);
+
+let formData = {
+  field1: "initial value1 from server",
+  field2: "initial value2 from server",
+};
+
+io.on("connection", (socket) => {
+  console.log(socket.id + " is connected");
+
+  socket.on("form-edit", (formDataReq) => {
+    // console.log(`message from ${socket.id} : ${message}`);
+    if (JSON.stringify(formData) !== JSON.stringify(formDataReq)) {
+      formData = {
+        ...formDataReq,
+      };
+
+      socket.broadcast.emit("update-form", formData);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`socket ${socket.id} disconnected`);
+  });
+});
 
 const socketIOMiddleware = (req, res, next) => {
   req.io = io;
@@ -33,20 +56,27 @@ app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// -----  service workers -----
 app.post(
   "/subscription",
   subscriptionHandler.handlePushNotificationSubscription
 );
 app.get("/subscription/:id", subscriptionHandler.sendPushNotification);
 
-app.post("/update-form", socketIOMiddleware, (req, res) => {
-  const { form } = req.body;
-  req.io.broadcast.emit("update-form", form);
-  res.status(200).json({});
+// -----  socket.io form editing -----
+
+app.get("/form", socketIOMiddleware, (req, res) => {
+  res.status(200).json(formData);
 });
 
-// app.listen(port);
-// console.log('The magic happens on port ' + port);
+app.post("/form", socketIOMiddleware, (req, res) => {
+  const { body } = req;
+  if (JSON.stringify(body) !== JSON.stringify(formData)) {
+    req.io.broadcast.emit("update-form", body);
+  }
+  res.status(200).json(formData);
+});
+
 server.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
